@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MC FLY 81 729 · Warp-Gate · Gepaart</title>
+<style>
+:root{color-scheme:dark;--bg:#000;--p:#07100c;--l:#255742;--g:#65f0b0;--m:#91a49a;--gold:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--g);font:14px/1.5 system-ui,sans-serif}
+header{padding:12px 16px;border-bottom:1px solid var(--l);display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
+header strong{letter-spacing:1px}small{color:var(--m)}
+button{min-height:36px;padding:7px 12px;border:1px solid var(--l);border-radius:7px;background:#111c2a;color:var(--g);cursor:pointer}
+button.on{border-color:var(--gold);color:var(--gold)}button.danger{border-color:#ff6b6b;color:#ff6b6b}
+main{max-width:1000px;margin:0 auto;padding:14px;display:grid;gap:12px}
+.card{background:var(--p);border:1px solid var(--l);border-radius:10px;padding:12px}
+canvas{width:100%;height:420px;display:block;background:#000;border:1px solid var(--l);border-radius:8px}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px}.kv dt{color:var(--m)}.kv dd{margin:0}
+.grid81{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin-top:10px}
+.grid81 div{aspect-ratio:1;display:grid;place-items:center;border:1px solid var(--l);border-radius:4px;font-size:11px;color:var(--m)}
+.grid81 div.cur{background:var(--g);color:#07140d;font-weight:700}.grid81 div.mitte{border-color:var(--gold);color:var(--gold)}
+.grid81 div.done{background:#123322;color:var(--g)}
+pre{background:#030806;border:1px solid var(--l);border-radius:7px;padding:10px;overflow:auto;white-space:pre-wrap;color:var(--g);font:12px/1.5 ui-monospace,Consolas,monospace}
+</style></head><body>
+<header><div><strong>MC FLY 81 729 · WARP-GATE · GEPAART</strong><br><small>Gate = Flug · 81 = Maß · 729 = Ziel · 41 = MITTE · Demo, lokal, kein Netz</small></div>
+<div><button id="startBtn" class="on">▶ FLIEG</button><button id="haltBtn" class="danger">HALT</button><button id="resetBtn">RESET</button></div></header>
+<main>
+<section class="card"><canvas id="scene" width="1000" height="420"></canvas>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"><button data-zoom="3">ZOOM 3 · ×4</button><button data-zoom="9">ZOOM 9 · ×16</button><button data-zoom="81">ZOOM 81 · ×128</button><button data-zoom="729">ZOOM 729 · AUS BLACK HOLE</button><button id="speedBtn">SPEED: NORMAL</button></div>
+<div class="kv" style="margin-top:10px"><dt>FELD</dt><dd id="feld">1 / 81</dd><dt>DURCHFLUG</dt><dd id="flug">0</dd><dt>SKALA</dt><dd id="skala">3 = ×4 · 9 = ×16 · 81 = ×128 · 729k = Anker, nicht Leben. Leben = 3 / 9 / 81.</dd><dt>STATUS</dt><dd id="status">Bereit · HALT aus · Cube wartet auf Feld 1</dd></div></section>
+<section class="card"><h3 style="margin:0 0 6px;color:var(--gold)">81 FELDER · 1 DURCHFLUG = 1 FELD</h3><div class="grid81" id="grid81"></div>
+<pre id="log">[INIT] MC FLY + Warp-Gate gepaart · vol.1.html als Gate übernommen, verbessert: Loop + HALT + Maß
+[REGEL] 81 Felder sind das Maß, nie dazuaddiert · 100k TEL = 81 als Darstellung 1:1 · 1 Mio / 1 Bio = Verhältnis, keine Extra-Felder
+[REGEL] Wurzelkette: sqrt(9)=3 · sqrt(81)=9 · sqrt(729)=27 · runter: 729/9=81 · 81/9=9</pre></section>
+</main>
+<script>
+"use strict";
+const c=document.getElementById("scene"),ctx=c.getContext("2d");
+let running=true, halt=false, speed=1, zoom=3, feld=1, flug=0, done=new Set();
+const gate={x:760,y:210,r:78,wave:0,shimmer:.3};
+let cube={x:110,y:210,size:22,scale:1,entering:false,alpha:1,warp:0};
+const grid=document.getElementById("grid81");
+for(let i=1;i<=81;i++){const d=document.createElement("div");d.textContent=i;d.id="f"+i;if(i===41)d.classList.add("mitte");grid.append(d)}
+function log(m){document.getElementById("log").textContent+="\n"+new Date().toLocaleTimeString()+" · "+m}
+function upd(){document.getElementById("feld").textContent=feld+" / 81";document.getElementById("flug").textContent=flug;
+ document.querySelectorAll("#grid81 div").forEach((el,i)=>{el.classList.toggle("cur",i+1===feld);el.classList.toggle("done",done.has(i+1))});
+ document.getElementById("status").textContent=(halt?"HALT AKTIV · ":"")+(feld>=81?"729 ERREICHT · 81/81 · HALT = ZIEL · ":"")+`ZOOM ${zoom} · Cube auf Feld ${feld}`;}
+function drawGate(){gate.wave+=0.05* speed;gate.shimmer=Math.sin(gate.wave*.7)*.2+.3;
+ const g=ctx.createRadialGradient(gate.x,gate.y,gate.r*.1,gate.x,gate.y,gate.r*1.4);
+ g.addColorStop(0,`rgba(120,180,255,${gate.shimmer})`);g.addColorStop(.4,`rgba(120,180,255,${gate.shimmer*.4})`);g.addColorStop(1,"rgba(0,0,0,0)");
+ ctx.fillStyle=g;ctx.beginPath();ctx.arc(gate.x,gate.y,gate.r+Math.sin(gate.wave)*4,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle=`rgba(180,220,255,${gate.shimmer})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(gate.x,gate.y,gate.r+Math.sin(gate.wave)*3,0,Math.PI*2);ctx.stroke();
+ ctx.fillStyle="#dce8f2";ctx.font="12px monospace";ctx.textAlign="center";ctx.fillText("GATE → 729",gate.x,gate.y+gate.r+18);}
+function drawGrid(){ctx.strokeStyle="#123322";ctx.lineWidth=1;for(let r=0;r<9;r++)for(let col=0;col<9;col++){const x=40+col*68,y=30+r*40;ctx.strokeRect(x,y,60,32);if(r*9+col+1===feld){ctx.fillStyle="#65f0b033";ctx.fillRect(x,y,60,32)}if(r*9+col+1===41){ctx.strokeStyle="#ffd166";ctx.strokeRect(x,y,60,32);ctx.strokeStyle="#123322"}}}
+function drawCube(){ctx.save();ctx.globalAlpha=cube.alpha;const s=cube.size*cube.scale;const wo=Math.sin(cube.warp)*(cube.scale*2);
+ ctx.fillStyle="#44ccff";ctx.fillRect(cube.x-s/2-wo,cube.y-s/2,s+wo*2,s);ctx.fillStyle="#07140d";ctx.font="bold 11px monospace";ctx.textAlign="center";ctx.fillText(String(feld),cube.x,cube.y+4);ctx.restore();}
+function resetCube(){cube={x:110,y:210,size:22,scale:1,entering:false,alpha:1,warp:0}}
+function loop(){ctx.clearRect(0,0,1000,420);drawGrid();drawGate();drawCube();
+ if(running&&!halt){
+  if(!cube.entering){cube.x+=2.2*speed;if(cube.x>=gate.x-gate.r)cube.entering=true;}
+  else{cube.warp+=.2;if(cube.scale<4)cube.scale+=.12;cube.alpha-=.025;cube.x+=1.5*speed;cube.y+=Math.sin(cube.x*.08)*.7;
+   if(cube.alpha<=0){done.add(feld);flug++;log(`DURCHFLUG ${flug} · Feld ${feld} durch Gate`);if(feld>=81){log("729 ERREICHT · 81/81 · Kein Feld mehr. HALT = ZIEL.");halt=true;document.getElementById("haltBtn").textContent="HALT AKTIV";}else{feld++;resetCube();}upd();}}
+ }
+ requestAnimationFrame(loop)}
+document.getElementById("startBtn").onclick=e=>{running=true;halt=false;e.target.textContent="▶ FLIEG";document.getElementById("haltBtn").textContent="HALT";log("FLIEG");upd()};
+document.getElementById("haltBtn").onclick=e=>{halt=!halt;e.target.textContent=halt?"HALT AKTIV":"HALT";log(halt?"HALT gesetzt":"HALT gelöst");upd()};
+document.getElementById("resetBtn").onclick=()=>{feld=1;flug=0;done.clear();halt=false;running=true;resetCube();document.getElementById("haltBtn").textContent="HALT";document.getElementById("log").textContent="[RESET] Zurück auf Feld 1";log("RESET");upd()};
+document.querySelectorAll("[data-zoom]").forEach(b=>b.onclick=()=>{zoom=+b.dataset.zoom;document.getElementById("skala").textContent=`ZOOM ${zoom} gewählt · 3=×4 · 9=×16 · 81=×128 · 729 = aus Black Hole gesehen`;log("ZOOM "+zoom);upd()});
+document.getElementById("speedBtn").onclick=e=>{speed=speed===1?2:1;e.target.textContent="SPEED: "+(speed===1?"NORMAL":"SCHNELL");log("SPEED "+speed)};
+upd();loop();
+</script></body></html>
